@@ -39,13 +39,21 @@ class UserService {
         return bcrypt.hash(password, this._saltRounds)
             .then(hash => {
             return user_1.User.create({ email, password: hash })
-                .then((u) => this.getUserById(u.id));
+                .then((user) => this.getUserById(user.id));
         });
     }
-    login({ email }) {
-        return user_1.User.findOne({ where: { email } }).then((u) => {
-            const { id } = u;
-            return { token: jwt.sign({ id, email }, this._jwtSecret) };
+    login({ email, password }) {
+        return user_1.User.findOne({ where: { email } }).then((user) => {
+            const { id, password: passwordUser } = user;
+            return bcrypt.compare(password, passwordUser)
+                .then((result) => {
+                if (result) {
+                    return { token: jwt.sign({ id, email }, this._jwtSecret) };
+                }
+                else {
+                    return { error: "Bad password" };
+                }
+            });
         });
     }
     verifyToken(token) {
@@ -65,7 +73,6 @@ class UserService {
         return user_1.User.findByPk(id, {
             attributes: UserService.userAttributes
         });
-        // }) as Bluebird<UserViewModel>;
     }
 }
 exports.UserService = UserService;

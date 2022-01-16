@@ -25,13 +25,14 @@ exports.User = sequelize_2.sequelize.define("User", {
     password: {
         type: sequelize_1.DataTypes.STRING,
     },
+}, {
+    tableName: "User"
 });
 function doStuff() {
     return __awaiter(this, void 0, void 0, function* () {
         const instance = yield exports.User.findByPk(1, {
             rejectOnEmpty: true,
         });
-        console.log(instance.id);
     });
 }
 //# sourceMappingURL=user.js.map

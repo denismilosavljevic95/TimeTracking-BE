@@ -2,8 +2,7 @@
 
 import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
-import Bluebird from 'bluebird';
-import { User, UserAddModel, UserViewModel } from '../models/user';
+import { User, UserCreationAttributes } from '../models/user';
 
 export class UserService {
     private readonly _saltRounds = 12;
@@ -17,18 +16,25 @@ export class UserService {
         return UserService._user;
     }
 
-    register({ email, password }: UserAddModel) {
+    register({ email, password }: UserCreationAttributes) {
         return bcrypt.hash(password, this._saltRounds)
             .then(hash => {
                 return User.create({ email, password: hash })
-                    .then((u: any) => this.getUserById(u!.id));
+                    .then((user: any) => this.getUserById(user.id));
             });
     }
 
-    login({ email }: UserAddModel) {
-        return User.findOne({ where: { email } }).then((u: { id: any; }) => {
-            const { id } = u;
-            return { token: jwt.sign({ id, email }, this._jwtSecret) };
+    login({ email, password }: UserCreationAttributes) {
+        return User.findOne({ where: { email } }).then((user: { id: number; password: string }) => {
+            const { id, password: passwordUser } = user;
+            return bcrypt.compare(password, passwordUser)
+                .then((result: boolean) => {
+                    if (result) {
+                        return { token: jwt.sign({ id, email }, this._jwtSecret) };
+                    } else {
+                        return {error: "Bad password"}
+                    }
+                })
         });
     }
 
@@ -51,6 +57,5 @@ export class UserService {
         return User.findByPk(id, {
             attributes: UserService.userAttributes
         })
-        // }) as Bluebird<UserViewModel>;
     }
 }

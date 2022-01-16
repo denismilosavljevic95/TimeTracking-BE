@@ -3,11 +3,6 @@
 import { Model, DataTypes, Optional } from 'sequelize'
 import { sequelize } from '../instances/sequelize'
 
-export interface UserAddModel {
-    email: string
-    password: string
-}
-
 export interface UserViewModel {
     id: number
     email: string
@@ -19,9 +14,9 @@ interface UserAttributes {
     email: string;
     password: string;
   }
-  
+
 // Some fields are optional when calling UserModel.create() or UserModel.build()
-interface UserCreationAttributes extends Optional<UserAttributes, "id"> {}
+export interface UserCreationAttributes extends Optional<UserAttributes, "id"> {}
 
 // We need to declare an interface for our model that is basically what our class would be
 interface UserInstance
@@ -40,11 +35,12 @@ export const User = sequelize.define<UserInstance>("User", {
     password: {
         type: DataTypes.STRING,
     },
+}, {
+    tableName: "User"
 });
 
 async function doStuff() {
     const instance = await User.findByPk(1, {
       rejectOnEmpty: true,
     });
-    console.log(instance.id);
-  }
+}
